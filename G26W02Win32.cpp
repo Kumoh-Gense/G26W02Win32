@@ -12,6 +12,8 @@ WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
 
 static int x = -100, y = 100;
+static bool showSquare = false; // 네모를 그릴지 여부
+static int squareSize = 60;
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -157,7 +159,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             blue = CreatePen(PS_SOLID, 2, RGB(0, 0, 255));
             oldPen = (HPEN)SelectObject(hdc, blue);
 
-            Ellipse(hdc, x - 30, y - 30, x + 30, y + 30);
+            if (showSquare)
+            {
+				Rectangle(hdc, x - squareSize / 2, y - squareSize / 2, x + squareSize / 2, y + squareSize / 2);
+            }
+            else
+            {
+                Ellipse(hdc, x - squareSize / 2, y - squareSize / 2, x + squareSize / 2, y + squareSize / 2);
+            }
+
 
             SelectObject(hdc, oldPen);
             DeleteObject(blue);
@@ -172,6 +182,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         //MessageBox(hWnd, L"왼쪽 버튼 클릭", L"마우스", MB_OK);
         //int x, y;
+		showSquare = false;
         x = LOWORD(lParam);
         y = HIWORD(lParam);
 
@@ -195,6 +206,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         ReleaseDC(hWnd, hdc);*/
 
 
+    }
+    break;
+    case WM_RBUTTONDOWN:
+    {
+        showSquare = TRUE;
+        x = LOWORD(lParam);
+        y = HIWORD(lParam);
+        InvalidateRect(hWnd, NULL, TRUE);
+    }
+    break;
+    case WM_MOUSEWHEEL:
+    {
+        int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+        // wheel 방향에 따라 네모 사이즈를 간단히 조정
+        squareSize += (delta > 0) ? 6 : -6;
+        if (squareSize < 6) squareSize = 6;
+        InvalidateRect(hWnd, NULL, TRUE);
     }
     break;
     case WM_DESTROY:
